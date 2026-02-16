@@ -125,4 +125,3 @@ class PDFReporter:
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         return self._fig_to_base64(fig)
-
