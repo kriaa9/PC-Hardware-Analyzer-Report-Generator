@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output reports
+output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp benchmark files
+*.tmp
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg

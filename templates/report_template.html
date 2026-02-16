@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Hardware Analysis Report</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        header p { opacity: 0.85; font-size: 0.95rem; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .card-full { grid-column: 1 / -1; }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-row .label { color: var(--text-muted); font-size: 0.9rem; }
+        .info-row .value { font-weight: 600; font-size: 0.9rem; }
+
+        .health-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin: 1rem auto;
+        }
+
+        .health-good { background: linear-gradient(135deg, #16a34a, #22c55e); }
+        .health-warning { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .health-critical { background: linear-gradient(135deg, #dc2626, #ef4444); }
+
+        .recommendation {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .rec-critical { background: #fef2f2; border-left: 4px solid var(--danger); color: #991b1b; }
+        .rec-warning { background: #fffbeb; border-left: 4px solid var(--warning); color: #92400e; }
+        .rec-good { background: #f0fdf4; border-left: 4px solid var(--success); color: #166534; }
+
+        .chart-container { width: 100%; min-height: 300px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        table th, table td {
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.3rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem 0;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>&#x1F5A5;&#xFE0F; PC Hardware Analysis Report</h1>
+            <p>Generated: {{ generated }} | {{ data.system.hostname }} | {{ data.system.os }}</p>
+        </header>
+
+        <!-- Health Score -->
+        <div class="grid">
+            <div class="card" style="text-align: center;">
+                <h2>Overall Health Score</h2>
+                {% set score = data.health_score %}
+                <div class="health-badge {% if score >= 80 %}health-good{% elif score >= 60 %}health-warning{% else %}health-critical{% endif %}">
+                    {{ score }}
+                </div>
+                <p style="color: var(--text-muted);">
+                    {% if score >= 80 %}Healthy System{% elif score >= 60 %}Attention Needed{% else %}Critical Issues Found{% endif %}
+                </p>
+            </div>
+
+            <!-- System Overview -->
+            <div class="card">
+                <h2>&#x1F4BB; System Overview</h2>
+                <div class="info-row"><span class="label">Hostname</span><span class="value">{{ data.system.hostname }}</span></div>
+                <div class="info-row"><span class="label">OS</span><span class="value">{{ data.system.os }}</span></div>
+                <div class="info-row"><span class="label">Architecture</span><span class="value">{{ data.system.architecture }}</span></div>
+                <div class="info-row"><span class="label">Boot Time</span><span class="value">{{ data.system.boot_time }}</span></div>
+                <div class="info-row"><span class="label">Uptime</span><span class="value">{{ data.system.uptime }}</span></div>
+                <div class="info-row"><span class="label">Python</span><span class="value">{{ data.system.python_version }}</span></div>
+            </div>
+        </div>
+
+        <!-- CPU Section -->
+        <div class="grid">
+            <div class="card">
+                <h2>&#x1F9E0; CPU Information</h2>
+                <div class="info-row"><span class="label">Model</span><span class="value">{{ data.cpu.brand }}</span></div>
+                <div class="info-row"><span class="label">Architecture</span><span class="value">{{ data.cpu.architecture }}</span></div>
+                <div class="info-row"><span class="label">Cores</span><span class="value">{{ data.cpu.physical_cores }}P / {{ data.cpu.logical_cores }}L</span></div>
+                <div class="info-row"><span class="label">Frequency</span><span class="value">{{ data.cpu.frequency_current }} MHz</span></div>
+                <div class="info-row"><span class="label">Usage</span><span class="value">{{ data.cpu.usage_percent }}%</span></div>
+                {% if data.cpu.temperature %}
+                <div class="info-row"><span class="label">Temperature</span><span class="value">{{ data.cpu.temperature }}°C</span></div>
+                {% endif %}
+                <div class="info-row"><span class="label">Throttling</span><span class="value">{{ "Yes ⚠️" if data.cpu.is_throttling else "No ✅" }}</span></div>
+            </div>
+
+            <div class="card">
+                <h2>CPU Usage</h2>
+                <div id="cpu-gauge" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- Memory Section -->
+        <div class="grid">
+            <div class="card">
+                <h2>&#x1F4BE; Memory</h2>
+                <div class="info-row"><span class="label">Total</span><span class="value">{{ data.memory.total_gb }} GB</span></div>
+                <div class="info-row"><span class="label">Used</span><span class="value">{{ data.memory.used_gb }} GB ({{ data.memory.usage_percent }}%)</span></div>
+                <div class="info-row"><span class="label">Available</span><span class="value">{{ data.memory.available_gb }} GB</span></div>
+                <div class="info-row"><span class="label">Type</span><span class="value">{{ data.memory.memory_type }}</span></div>
+                {% if data.memory.speed_mhz %}
+                <div class="info-row"><span class="label">Speed</span><span class="value">{{ data.memory.speed_mhz }} MHz</span></div>
+                {% endif %}
+                <div class="info-row"><span class="label">Channel</span><span class="value">{{ data.memory.channel_mode }}</span></div>
+                <div class="info-row"><span class="label">Swap</span><span class="value">{{ data.memory.swap_used_gb }} / {{ data.memory.swap_total_gb }} GB</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ data.memory.usage_percent }}%; background: {% if data.memory.usage_percent > 90 %}var(--danger){% elif data.memory.usage_percent > 75 %}var(--warning){% else %}var(--primary){% endif %};"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>RAM Usage</h2>
+                <div id="ram-pie" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- Storage Section -->
+        <div class="grid">
+            <div class="card card-full">
+                <h2>&#x1F4BF; Storage</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>SMART</th>
+                            <th>Temp</th>
+                            <th>Partitions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for disk in data.storage %}
+                        <tr>
+                            <td><strong>{{ disk.name }}</strong></td>
+                            <td>{{ disk.disk_type }}</td>
+                            <td>{{ disk.size_gb }} GB</td>
+                            <td>{{ disk.smart_status }}</td>
+                            <td>{{ disk.smart_temperature if disk.smart_temperature else "N/A" }}°C</td>
+                            <td>{{ disk.partitions | length }}</td>
+                        </tr>
+                        {% for part in disk.partitions %}
+                        <tr style="background: #f8fafc;">
+                            <td style="padding-left: 2rem;">↳ {{ part.mountpoint }}</td>
+                            <td>{{ part.fstype }}</td>
+                            <td>{{ part.total_gb }} GB</td>
+                            <td colspan="2">
+                                Used: {{ part.used_gb }} GB ({{ part.usage_percent }}%)
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ part.usage_percent }}%; background: {% if part.usage_percent > 95 %}var(--danger){% elif part.usage_percent > 80 %}var(--warning){% else %}var(--primary){% endif %};"></div>
+                                </div>
+                            </td>
+                            <td>Free: {{ part.free_gb }} GB</td>
+                        </tr>
+                        {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Disk Chart -->
+        {% if charts.disk_bar %}
+        <div class="grid">
+            <div class="card card-full">
+                <h2>Disk Usage Chart</h2>
+                <div id="disk-bar" class="chart-container"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- GPU Section -->
+        <div class="grid">
+            {% for gpu in data.gpu %}
+            <div class="card">
+                <h2>&#x1F3AE; GPU {{ gpu.index }}</h2>
+                <div class="info-row"><span class="label">Name</span><span class="value">{{ gpu.name }}</span></div>
+                {% if gpu.vram_total_mb > 0 %}
+                <div class="info-row"><span class="label">VRAM</span><span class="value">{{ gpu.vram_used_mb | round(0) }} / {{ gpu.vram_total_mb | round(0) }} MB</span></div>
+                {% endif %}
+                {% if gpu.gpu_utilization > 0 %}
+                <div class="info-row"><span class="label">GPU Load</span><span class="value">{{ gpu.gpu_utilization }}%</span></div>
+                {% endif %}
+                {% if gpu.temperature %}
+                <div class="info-row"><span class="label">Temperature</span><span class="value">{{ gpu.temperature }}°C</span></div>
+                {% endif %}
+                {% if gpu.fan_speed %}
+                <div class="info-row"><span class="label">Fan Speed</span><span class="value">{{ gpu.fan_speed }}%</span></div>
+                {% endif %}
+                {% if gpu.power_draw %}
+                <div class="info-row"><span class="label">Power</span><span class="value">{{ gpu.power_draw }}W / {{ gpu.power_limit }}W</span></div>
+                {% endif %}
+                <div class="info-row"><span class="label">Driver</span><span class="value">{{ gpu.driver_version }}</span></div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Battery Section -->
+        {% if data.battery and data.battery.present %}
+        <div class="grid">
+            <div class="card">
+                <h2>&#x1F50B; Battery</h2>
+                <div class="info-row"><span class="label">Charge</span><span class="value">{{ data.battery.percent }}%</span></div>
+                <div class="info-row"><span class="label">Status</span><span class="value">{{ data.battery.status }}</span></div>
+                <div class="info-row"><span class="label">Plugged In</span><span class="value">{{ "Yes" if data.battery.plugged_in else "No" }}</span></div>
+                {% if data.battery.time_remaining_min %}
+                <div class="info-row"><span class="label">Time Remaining</span><span class="value">{{ data.battery.time_remaining_min }} min</span></div>
+                {% endif %}
+                <div class="info-row"><span class="label">Health</span><span class="value">{{ data.battery.health_percent }}%</span></div>
+                {% if data.battery.charge_cycles %}
+                <div class="info-row"><span class="label">Cycles</span><span class="value">{{ data.battery.charge_cycles }}</span></div>
+                {% endif %}
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ data.battery.health_percent }}%; background: {% if data.battery.health_percent >= 80 %}var(--success){% elif data.battery.health_percent >= 60 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Network Section -->
+        <div class="grid">
+            <div class="card card-full">
+                <h2>&#x1F310; Network Interfaces</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Interface</th>
+                            <th>IPv4</th>
+                            <th>MAC</th>
+                            <th>Speed</th>
+                            <th>Status</th>
+                            <th>Upload</th>
+                            <th>Download</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for iface in data.network.interfaces %}
+                        <tr>
+                            <td><strong>{{ iface.name }}</strong></td>
+                            <td>{{ iface.ipv4_address }}</td>
+                            <td>{{ iface.mac_address }}</td>
+                            <td>{{ iface.speed_mbps if iface.speed_mbps else "N/A" }} Mbps</td>
+                            <td>{{ "🟢 Up" if iface.is_up else "🔴 Down" }}</td>
+                            <td>{{ iface.upload_speed_kbps }} KB/s</td>
+                            <td>{{ iface.download_speed_kbps }} KB/s</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Benchmarks Section -->
+        {% if data.bench_cpu_single is defined %}
+        <div class="grid">
+            <div class="card card-full">
+                <h2>&#x1F3C6; Benchmark Results</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Benchmark</th>
+                            <th>Score / Value</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CPU Single-Core</td>
+                            <td>{{ data.bench_cpu_single }}</td>
+                            <td>{% if data.bench_cpu_single >= 900 %}Excellent{% elif data.bench_cpu_single >= 700 %}Very Good{% elif data.bench_cpu_single >= 500 %}Good{% elif data.bench_cpu_single >= 300 %}Average{% else %}Below Average{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td>CPU Multi-Core</td>
+                            <td>{{ data.bench_cpu_multi }}</td>
+                            <td>{% if data.bench_cpu_multi >= 900 %}Excellent{% elif data.bench_cpu_multi >= 700 %}Very Good{% elif data.bench_cpu_multi >= 500 %}Good{% elif data.bench_cpu_multi >= 300 %}Average{% else %}Below Average{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td>Memory Read</td>
+                            <td>{{ data.bench_mem_read }} GB/s</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>Memory Write</td>
+                            <td>{{ data.bench_mem_write }} GB/s</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>Disk Write</td>
+                            <td>{{ data.bench_disk_write }} MB/s</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>Disk Read</td>
+                            <td>{{ data.bench_disk_read }} MB/s</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recommendations -->
+        <div class="grid">
+            <div class="card card-full">
+                <h2>&#x1F4CB; Recommendations</h2>
+                {% for rec in data.recommendations %}
+                <div class="recommendation rec-{{ rec.level }}">
+                    {% if rec.level == "critical" %}🔴{% elif rec.level == "warning" %}🟡{% else %}🟢{% endif %}
+                    {{ rec.message }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <footer>
+            <p>PC Hardware Analyzer &mdash; Report generated on {{ generated }}</p>
+        </footer>
+    </div>
+
+    <script>
+        {% if charts.cpu_gauge %}
+        var cpuData = {{ charts.cpu_gauge | safe }};
+        Plotly.newPlot('cpu-gauge', cpuData.data, cpuData.layout, {responsive: true});
+        {% endif %}
+
+        {% if charts.ram_pie %}
+        var ramData = {{ charts.ram_pie | safe }};
+        Plotly.newPlot('ram-pie', ramData.data, ramData.layout, {responsive: true});
+        {% endif %}
+
+        {% if charts.disk_bar %}
+        var diskData = {{ charts.disk_bar | safe }};
+        Plotly.newPlot('disk-bar', diskData.data, diskData.layout, {responsive: true});
+        {% endif %}
+    </script>
+</body>
+</html>
