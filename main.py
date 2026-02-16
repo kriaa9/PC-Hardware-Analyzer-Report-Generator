@@ -261,8 +261,13 @@ def main(pdf, no_benchmark, output):
     if pdf:
         pdf_path = os.path.join(output, f"hardware_report_{timestamp}.pdf")
         pdf_reporter = PDFReporter()
-        pdf_reporter.generate(html_path, pdf_path)
-        console.print(f"[green]✓[/green] PDF report saved: [link]{pdf_path}[/link]")
+        try:
+            pdf_reporter.generate(html_path, pdf_path, data=data)
+            console.print(f"[green]✓[/green] PDF report saved: [link]{pdf_path}[/link]")
+        except (RuntimeError, OSError) as e:
+            console.print(f"[yellow]⚠[/yellow] PDF generation failed: {e}")
+            console.print("[dim]  On Windows, install GTK3 runtime: https://github.com/nickvdyck/weasyprint-win/releases[/dim]")
+            console.print("[dim]  On Linux: sudo apt install libpango-1.0-0 libcairo2[/dim]")
 
     console.print("\n[bold green]✅ Analysis complete![/bold green]")
 

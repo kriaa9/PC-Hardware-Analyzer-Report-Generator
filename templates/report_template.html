@@ -422,7 +422,7 @@
         </footer>
     </div>
 
-    <script type="text/template">
+    <script type="text/javascript">
         {% if charts.cpu_gauge %}
         var cpuData = {{ charts.cpu_gauge | safe }};
         Plotly.newPlot('cpu-gauge', cpuData.data, cpuData.layout, {responsive: true});
