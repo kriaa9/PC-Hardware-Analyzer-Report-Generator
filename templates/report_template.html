@@ -371,32 +371,32 @@
                         <tr>
                             <td>CPU Single-Core</td>
                             <td>{{ data.bench_cpu_single }}</td>
-                            <td>{% if data.bench_cpu_single >= 900 %}Excellent{% elif data.bench_cpu_single >= 700 %}Very Good{% elif data.bench_cpu_single >= 500 %}Good{% elif data.bench_cpu_single >= 300 %}Average{% else %}Below Average{% endif %}</td>
+                            <td>{% if data.bench_cpu_single >= 15000 %}Excellent{% elif data.bench_cpu_single >= 10000 %}Very Good{% elif data.bench_cpu_single >= 6000 %}Good{% elif data.bench_cpu_single >= 3000 %}Average{% else %}Below Average{% endif %}</td>
                         </tr>
                         <tr>
                             <td>CPU Multi-Core</td>
                             <td>{{ data.bench_cpu_multi }}</td>
-                            <td>{% if data.bench_cpu_multi >= 900 %}Excellent{% elif data.bench_cpu_multi >= 700 %}Very Good{% elif data.bench_cpu_multi >= 500 %}Good{% elif data.bench_cpu_multi >= 300 %}Average{% else %}Below Average{% endif %}</td>
+                            <td>{% if data.bench_cpu_multi >= 80000 %}Excellent{% elif data.bench_cpu_multi >= 50000 %}Very Good{% elif data.bench_cpu_multi >= 25000 %}Good{% elif data.bench_cpu_multi >= 10000 %}Average{% else %}Below Average{% endif %}</td>
                         </tr>
                         <tr>
                             <td>Memory Read</td>
                             <td>{{ data.bench_mem_read }} GB/s</td>
-                            <td>-</td>
+                            <td>{% if data.bench_mem_read >= 30 %}Excellent{% elif data.bench_mem_read >= 15 %}Very Good{% elif data.bench_mem_read >= 8 %}Good{% elif data.bench_mem_read >= 4 %}Average{% else %}Below Average{% endif %}</td>
                         </tr>
                         <tr>
                             <td>Memory Write</td>
                             <td>{{ data.bench_mem_write }} GB/s</td>
-                            <td>-</td>
+                            <td>{% if data.bench_mem_write >= 20 %}Excellent{% elif data.bench_mem_write >= 10 %}Very Good{% elif data.bench_mem_write >= 5 %}Good{% elif data.bench_mem_write >= 2 %}Average{% else %}Below Average{% endif %}</td>
                         </tr>
                         <tr>
                             <td>Disk Write</td>
                             <td>{{ data.bench_disk_write }} MB/s</td>
-                            <td>-</td>
+                            <td>{% if data.bench_disk_write >= 3000 %}Excellent{% elif data.bench_disk_write >= 1000 %}Very Good{% elif data.bench_disk_write >= 400 %}Good{% elif data.bench_disk_write >= 100 %}Average{% else %}Below Average{% endif %}</td>
                         </tr>
                         <tr>
                             <td>Disk Read</td>
                             <td>{{ data.bench_disk_read }} MB/s</td>
-                            <td>-</td>
+                            <td>{% if data.bench_disk_read >= 3000 %}Excellent{% elif data.bench_disk_read >= 1000 %}Very Good{% elif data.bench_disk_read >= 500 %}Good{% elif data.bench_disk_read >= 120 %}Average{% else %}Below Average{% endif %}</td>
                         </tr>
                     </tbody>
                 </table>

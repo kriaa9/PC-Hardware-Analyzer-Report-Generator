@@ -83,6 +83,25 @@ class BatteryAnalyzer:
             c = wmi.WMI()
             for b in c.Win32_Battery():
                 data.design_capacity_mwh = int(b.DesignCapacity or 0)
-                data.health_percent = round(float(b.EstimatedChargeRemaining or 0), 1)
+                # Try WMI namespace for accurate battery health
+                try:
+                    wmi_root = wmi.WMI(namespace="root/WMI")
+                    for info in wmi_root.BatteryStaticData():
+                        design_cap = int(info.DesignedCapacity or 0)
+                        if design_cap > 0:
+                            data.design_capacity_mwh = design_cap
+                    for status in wmi_root.BatteryFullChargedCapacity():
+                        full_cap = int(status.FullChargedCapacity or 0)
+                        if full_cap > 0:
+                            data.full_charge_capacity_mwh = full_cap
+                    if data.design_capacity_mwh and data.full_charge_capacity_mwh:
+                        data.health_percent = round(
+                            (data.full_charge_capacity_mwh / data.design_capacity_mwh) * 100, 1
+                        )
+                    else:
+                        data.health_percent = round(float(b.EstimatedChargeRemaining or 0), 1)
+                except Exception:
+                    # Fallback: use EstimatedChargeRemaining if WMI root/WMI fails
+                    data.health_percent = round(float(b.EstimatedChargeRemaining or 0), 1)
         except Exception:
             pass

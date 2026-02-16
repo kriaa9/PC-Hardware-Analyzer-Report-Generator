@@ -28,6 +28,7 @@ from benchmarks.memory_bench import read_bandwidth_test, write_bandwidth_test
 from benchmarks.disk_bench import sequential_write_test, sequential_read_test
 from reporters.html_report import HTMLReporter
 from reporters.pdf_report import PDFReporter
+import config
 
 console = Console()
 
@@ -61,13 +62,13 @@ def compute_health_score(data: dict) -> tuple[int, list]:
     # CPU checks
     cpu = data.get("cpu")
     if cpu:
-        if cpu.temperature and cpu.temperature > 90:
+        if cpu.temperature and cpu.temperature > config.TEMP_CPU_CRITICAL:
             score -= 20
             recommendations.append({
                 "level": "critical",
                 "message": f"CPU temperature is dangerously high ({cpu.temperature}°C). Check cooling immediately."
             })
-        elif cpu.temperature and cpu.temperature > 75:
+        elif cpu.temperature and cpu.temperature > config.TEMP_CPU_WARNING:
             score -= 10
             recommendations.append({
                 "level": "warning",
@@ -83,13 +84,13 @@ def compute_health_score(data: dict) -> tuple[int, list]:
     # RAM checks
     memory = data.get("memory")
     if memory:
-        if memory.usage_percent > 90:
+        if memory.usage_percent > config.RAM_USAGE_CRITICAL:
             score -= 15
             recommendations.append({
                 "level": "critical",
                 "message": f"RAM usage is critically high ({memory.usage_percent}%). Upgrade RAM or close applications."
             })
-        elif memory.usage_percent > 75:
+        elif memory.usage_percent > config.RAM_USAGE_WARNING:
             score -= 8
             recommendations.append({
                 "level": "warning",
@@ -104,14 +105,14 @@ def compute_health_score(data: dict) -> tuple[int, list]:
                 "level": "critical",
                 "message": f"Drive {disk.name} has FAILED S.M.A.R.T. status. Back up data immediately!"
             })
-        if disk.smart_temperature and disk.smart_temperature > 55:
+        if disk.smart_temperature and disk.smart_temperature > config.TEMP_DISK_WARNING:
             score -= 10
             recommendations.append({
                 "level": "warning",
                 "message": f"Drive {disk.name} is running hot ({disk.smart_temperature}°C). Check case airflow."
             })
         for part in disk.partitions:
-            if part.usage_percent > 95:
+            if part.usage_percent > config.DISK_USAGE_CRITICAL:
                 score -= 10
                 recommendations.append({
                     "level": "critical",
@@ -121,7 +122,7 @@ def compute_health_score(data: dict) -> tuple[int, list]:
     # Battery checks
     battery = data.get("battery")
     if battery and battery.present:
-        if battery.health_percent < 60:
+        if battery.health_percent < config.BATTERY_HEALTH_FAIR:
             score -= 15
             recommendations.append({
                 "level": "warning",
@@ -143,7 +144,7 @@ def compute_health_score(data: dict) -> tuple[int, list]:
 @click.command()
 @click.option("--pdf", is_flag=True, help="Also generate a PDF report")
 @click.option("--no-benchmark", is_flag=True, help="Skip performance benchmarks")
-@click.option("--output", default="./output", help="Output directory for reports")
+@click.option("--output", default=config.DEFAULT_OUTPUT_DIR, help="Output directory for reports")
 def main(pdf, no_benchmark, output):
     console.print(Panel.fit(
         "[bold cyan]🖥️  PC Hardware Analyzer[/bold cyan]\n"
@@ -205,21 +206,21 @@ def main(pdf, no_benchmark, output):
         if not no_benchmark:
             console.print("\n[bold yellow]Running Benchmarks...[/bold yellow]")
 
-            t = progress.add_task("CPU single-core benchmark (10s)...", total=None)
-            data["bench_cpu_single"] = single_core_benchmark(duration=10)
+            t = progress.add_task(f"CPU single-core benchmark ({config.CPU_BENCH_DURATION}s)...", total=None)
+            data["bench_cpu_single"] = single_core_benchmark(duration=config.CPU_BENCH_DURATION)
             progress.remove_task(t)
 
-            t = progress.add_task("CPU multi-core benchmark (10s)...", total=None)
-            data["bench_cpu_multi"] = multi_core_benchmark(duration=10)
+            t = progress.add_task(f"CPU multi-core benchmark ({config.CPU_BENCH_DURATION}s)...", total=None)
+            data["bench_cpu_multi"] = multi_core_benchmark(duration=config.CPU_BENCH_DURATION)
             progress.remove_task(t)
 
             t = progress.add_task("Memory bandwidth test...", total=None)
-            data["bench_mem_read"] = read_bandwidth_test()
-            data["bench_mem_write"] = write_bandwidth_test()
+            data["bench_mem_read"] = read_bandwidth_test(size_mb=config.MEMORY_BENCH_SIZE_MB)
+            data["bench_mem_write"] = write_bandwidth_test(size_mb=config.MEMORY_BENCH_SIZE_MB)
             progress.remove_task(t)
 
             t = progress.add_task("Disk I/O benchmark...", total=None)
-            tmp_path = sequential_write_test()
+            tmp_path = sequential_write_test(size_mb=config.DISK_BENCH_SIZE_MB)
             data["bench_disk_write"] = tmp_path[1]   # speed MB/s
             data["bench_disk_read"] = sequential_read_test(tmp_path[0])
             progress.remove_task(t)

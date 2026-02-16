@@ -6,11 +6,14 @@ import tempfile
 def sequential_write_test(size_mb: int = 256) -> tuple[str, float]:
     """Writes a temp file and returns (path, speed_mbps)."""
     data = b"A" * (1024 * 1024)  # 1 MB chunk
-    tmp = tempfile.mktemp(suffix=".tmp")
+    fd, tmp = tempfile.mkstemp(suffix=".tmp")
+    os.close(fd)  # close the fd from mkstemp, we'll open it ourselves
     start = time.perf_counter()
     with open(tmp, "wb") as f:
         for _ in range(size_mb):
             f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
     elapsed = time.perf_counter() - start
     return tmp, round(size_mb / elapsed, 2)
 
